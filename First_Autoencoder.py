@@ -15,6 +15,8 @@ for line in open('breastCancerBenign1.txt').readlines():
             holder[i] = float(holder[i])
     mat.append(holder)
 
+'Lets get Rid of Patient Number'
+'It is a useless feature in this circumstance'
 mat = np.delete(mat, 0,1)
 
 
