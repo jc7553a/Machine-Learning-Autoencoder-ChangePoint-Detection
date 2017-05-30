@@ -6,7 +6,7 @@ from matplotlib.pylab import *
 
 mat =[]
 
-for line in open('breastCancerBenign.txt').readlines():
+for line in open('breastCancerBenign1.txt').readlines():
     holder = line.split(',')
     i = 0
     for i in range (len(holder)):
