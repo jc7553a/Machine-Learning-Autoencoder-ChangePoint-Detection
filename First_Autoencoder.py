@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy as np
-import Autoencoder
 import pylab
 from matplotlib.pylab import *
 
