@@ -4,7 +4,7 @@ import pylab
 import random
 from matplotlib.pylab import *
 
-print("Fold 9 10% Train, 90% Testing\n")
+print("Fold 10")
 
 mat =[]
 for line in open('breastCancerBenign1.txt').readlines():
@@ -14,9 +14,10 @@ for line in open('breastCancerBenign1.txt').readlines():
             holder[i] = float(holder[i])
     mat.append(holder)
 
-'Lets get Rid of Patient Number'
+'Lets get Rid of Patient Number, and Classification'
 'It is a useless feature in this circumstance'
-mat = np.delete(mat, 0,1)
+
+mat = np.delete(mat, [0,10], 1)
 benignData = np.array(mat).astype('float32')
 
 mat2 = []
@@ -28,23 +29,31 @@ for line in open('breastCancerMalignant1.txt').readlines():
     mat2.append(holder)
 
 mat2 = np.delete(mat2,0,1)
+mat2 = np.delete(mat2, [0,10], 1)
 malData = np.array(mat2).astype('float32')
 
 bShape = np.shape(benignData)
 mShape = np.shape(malData)
 
-numTestsBenign =  int(bShape[0]*.9)
-numTestsMal = int(mShape[0]*.9)
+numTestsBenign =  int(bShape[0]*.1)
+numTestsMal = int(mShape[0]*.1)
 
-
-input = benignData[0:(bShape[0] -numTestsBenign)][:]
-testingBenign = benignData[(bShape[0] -numTestsBenign):bShape[0]][:]
+temp = np.zeros((400,9))
+for i in range(388):
+    for j in range(bShape[1]):
+        temp[i][j] = benignData[i][j]
+for i in range(2):
+    for j in range(bShape[1]):
+        temp[i+396][j] = benignData[i+396][j]
+input = np.array(temp)
+#input = benignData[0:(bShape[0] -numTestsBenign)][:]
+testingBenign = benignData[(numTestsBenign*10):(numTestsBenign*11)][:]
 
 shapeTesting = np.shape(testingBenign)
-testingMal = malData[0:numTestsMal][:]
+testingMal = malData[(numTestsMal*10):(numTestsMal*11)][:]
 shapeMal = np.shape(testingMal)
 shape = np.shape(input)
-
+input = np.array(input)
 print("Number of Training Benign: ", shape[0])
 print("Number of Testing Benign: ", numTestsBenign)
 print("Number of Testing Malignant: ", shapeMal[0])
@@ -79,7 +88,7 @@ y = decoder
 y_true = tf.placeholder(tf.float32, [None, n_features], name = 'y_true')
 init = tf.global_variables_initializer()
 loss = tf.reduce_mean(tf.square(y_true - y))
-optimizer = tf.train.GradientDescentOptimizer(.01)
+optimizer = tf.train.GradientDescentOptimizer(.1)
 train = optimizer.minimize(loss)
 
 'Set up For batch training if needed'
@@ -97,7 +106,7 @@ print("\n")
 'Load Graph'
 sess = tf.Session()
 sess.run(init)
-
+#print(sess.run(w))
 
 
 for i in range(epochs):
@@ -108,7 +117,7 @@ for i in range(epochs):
         sess.run([train, loss], feed_dict = {x: batch_xs, y_true: batch_ys})
         #losses.append(sess.run(loss, feed_dict = {x: batch_xs, y_true: batch_ys}))
 
-
+#print(sess.run(w))
 
 #plot(losses)
 #show()
@@ -189,8 +198,9 @@ for c in range(len(test_losses2)):
     else:
         badMal += 1
 
-print("Positive Benign ", goodBenign)
-print("Negative Benign ", badBenign)
-print("Positive Mal ", goodMal)
-print("False Positive Malignant ", badMal)
+print("Positive ", goodBenign)
+print("False Positive ", badBenign)
+print("Negative ", goodMal)
+print("False Negative ", badMal)
+
 
