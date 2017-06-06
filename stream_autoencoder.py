@@ -19,7 +19,7 @@ def normalize(train):
 
 
 mat =[]
-for line in open('shuttleTrain.txt').readlines():
+for line in open('shuttleTrain1.txt').readlines():
     holder = line.split(' ')
     i = 0
     for i in range (len(holder)):
