@@ -5,7 +5,7 @@ from random import randint
 #import scipy
 from matplotlib.pylab import *
 
-
+'''
 def normalize(train):
     shape = np.shape(train)
     train = np.array(train)
@@ -25,11 +25,33 @@ def normalize(train):
         shape = np.shape(train)
         i +=1
     return train
+'''
+
+def normalize(train):
+    train = np.array(train)
+    shape = np.shape(train)
+    
+    k = 0
+    while k <shape[1]:
+        maxim = 0
+        minim = 0
+        for i in range(shape[0]):
+            if train[i][k] > maxim:
+                maxim = train[i][k]
+            if train[i][k] < minim:
+                minim = train[i][k]
+        for t in range(shape[0]):
+            train[t][k] = (train[t][k] - minim)/(maxim -minim)
+        k +=1
+
+    return train
 
 
-print("Training on Class 1 ")
+
+    
+print("Training on Class 5 ")
 mat =[]
-for line in open('shuttleTrain1.txt').readlines():
+for line in open('shuttleTrain.txt').readlines():
     holder = line.split(' ')
     i = 0
     for i in range (len(holder)):
@@ -38,30 +60,28 @@ for line in open('shuttleTrain1.txt').readlines():
 
 
 
-
-
 Fours = []
 for j in range(len(mat)):
     if mat[j][9] == 1:
         Fours.append(mat[j][:])
-        
 print(np.shape(Fours))
 Fours.sort(key=lambda row: row[0:])
-Fours = normalize(Fours)
-print(np.shape(Fours))
-print(Fours[0:2][:])
+
+shape = np.shape(Fours)
+
 
 
 
 #Ones = normalize(Ones)
 Fours = np.delete(Fours, [0,9],1)
-#Fours = normalize(Fours)
+Fours = normalize(Fours)
+print(Fours[0][:])
 shuttleData = np.array(Fours).astype('float32')
 shape = np.shape(shuttleData)
 print(shape)
 
 mat2 =[]
-for line in open('shuttleTest1.txt').readlines():
+for line in open('shuttleTest.txt').readlines():
     holder = line.split(' ')
     i = 0
     for i in range (len(holder)):
@@ -100,6 +120,13 @@ class5.sort(key=lambda row: row[0:])
 class6.sort(key=lambda row: row[0:])
 class7.sort(key=lambda row: row[0:])
 
+class1 = normalize(class1)
+class2 = normalize(class2)
+class3 = normalize(class3)
+class4 = normalize(class4)
+class5 = normalize(class5)
+class6 = normalize(class6)
+class7 = normalize(class7)
 
 class1 = np.delete(class1, [0,9], 1)
 class2 = np.delete(class2, [0,9],1)
@@ -127,6 +154,8 @@ shuttleTest6 = np.array(class6[0:shapeTest6[0]][:]).astype('float32')
 shuttleTest7 = np.array(class7[0:shapeTest7[0]][:]).astype('float32')
 
 #print(scipy.stats.zscore(shuttleTest6))
+
+
 '''
 shuttleTest = np.array(class1[0:100][:]).astype('float32')
 shuttleTest2 = np.array(class2[0:100][:]).astype('float32')
@@ -172,7 +201,7 @@ b3 = tf.Variable(tf.random_normal([n_hidden3]), name = 'biases_h3')
 '''
 'Weights and Biases to Output Layer'
 wo = tf.Variable(tf.truncated_normal([n_hidden, n_features],stddev = .001), name = 'weights_o')
-bo = tf.Variable(tf.random_normal([n_features]), name = 'biases_o')
+bo = tf.Variable(tf.truncated_normal([n_features], stddev = .001), name = 'biases_o')
 
 'Calculations for Encoder and Decoder'
 encoder = tf.nn.sigmoid(tf.matmul(x, w) + b)
@@ -186,8 +215,7 @@ y = decoder
 'Objective Functions'
 y_true = tf.placeholder(tf.float32, [None, n_features], name = 'y_true')
 loss = tf.reduce_mean(tf.square(y_true - y))
-optimizer = tf.train.GradientDescentOptimizer(.00002).minimize(loss)
-train2 = tf.train.GradientDescentOptimizer(.05).minimize(loss)
+optimizer = tf.train.GradientDescentOptimizer(.05).minimize(loss)
 #train = optimizer.minimize(loss)
 
 'Set up For batch training if needed'
@@ -210,10 +238,10 @@ init = tf.global_variables_initializer()
 sess = tf.Session()
 sess.run(init)
 
-print(sess.run(w))
+#print(sess.run(w))
 
 train_losses = []
-print("Start Training....")
+print("Start Training Batches....")
 batchTot = []
 #batchRate = np.float32(.000002)
 for t in range(200):
@@ -225,14 +253,14 @@ for t in range(200):
         batch_ys = shuttleData[(rando):(rando+batch_size)][0:shape[1]]
         sess.run(optimizer, feed_dict = {x: batch_xs, y_true: batch_ys})
         batch_losses.append(sess.run(loss, feed_dict = {x: batch_xs, y_true: batch_ys}))
-    #if t%10 ==0:
-    batchTot.append(np.average(batch_losses))
+    if t%10 ==0:
+        batchTot.append(np.average(batch_losses))
 plot(batchTot)
 show()
 
-print(sess.run(w))
-
-for q in range(200):
+#print(sess.run(w))
+print("Start Online Training....")
+for q in range(6):
     losses = []
     for t in range(shape[0]-1):
         temp = randint(0,shape[0]-1) 
@@ -309,7 +337,7 @@ print("Class 4 Average Loss ", mean)
 print("")
 
 test_losses5 = []
-for v in range(300):
+for v in range(400):
     bobweir = np.array([shuttleTest5[v][:]])
     test_act = np.array([shuttleTest5[v][:]])
     #sess.run([train], feed_dict = {x: bobweir, y_true: test_act})
@@ -373,6 +401,7 @@ for i in range(len(test_losses5)):
         negative += 1
     else:
         falseNegative += 1
+        
 for i in range(len(test_losses4)):
     if test_losses4[i] > threshhold:
         negative += 1
@@ -404,4 +433,7 @@ print("Positive ", positive)
 print("False Positive ", falsePositive)
 print("Negative ", negative)
 print("False Negative ", falseNegative)
-
+tot = negative+positive +falsePositive + falseNegative
+pos = negative + positive
+acc = float(pos/tot)
+print("Accuracy % = ", acc*100)
