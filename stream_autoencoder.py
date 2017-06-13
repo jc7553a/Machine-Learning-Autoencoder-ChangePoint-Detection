@@ -313,15 +313,15 @@ falsePositive = 0
 negative = 0
 falseNegative = 0
 
-mean = np.average(test_losses5)
-stdDev = np.std(test_losses5)
+mean = np.average(test_losses)
+stdDev = np.std(test_losses)
 threshhold = mean + 1.25*stdDev
 
 conf = []
 
 
-for j in range(len(test_losses5)):
-    if test_losses5[j] > threshhold:
+for j in range(len(test_losses)):
+    if test_losses[j] > threshhold:
         falsePositive += 1
         conf.append(1)
     else:
@@ -329,8 +329,8 @@ for j in range(len(test_losses5)):
         conf.append(0)
 
 
-for i in range(len(test_losses)):
-    if test_losses[i] > threshhold:
+for i in range(len(test_losses5)):
+    if test_losses5[i] > threshhold:
         negative +=1
         conf.append(1)
     else:
