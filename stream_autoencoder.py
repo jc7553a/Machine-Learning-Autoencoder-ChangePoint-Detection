@@ -4,28 +4,8 @@ import pylab
 from random import randint
 #import scipy
 from matplotlib.pylab import *
+import pandas as pd
 
-'''
-def normalize(train):
-    shape = np.shape(train)
-    train = np.array(train)
-    i = 0
-    while i < (shape[1]):
-        mean = np.average(train[0:shape[0]][:])
-        stdDev = np.std(train[0:shape[0]][:])
-        y = 0
-        length = shape[0]
-        while y < length:
-            absolute = np.absolute(train[y][i])
-            if absolute > mean +2*stdDev:
-                train = np.delete(train, y, 0) 
-                length -= 1
-                y = -1
-            y += 1
-        shape = np.shape(train)
-        i +=1
-    return train
-'''
 
 def normalize(train):
     train = np.array(train)
@@ -40,18 +20,19 @@ def normalize(train):
                 maxim = train[i][k]
             if train[i][k] < minim:
                 minim = train[i][k]
+        denom = maxim - minim
+        if denom == 0:
+            denom = .0000000001
         for t in range(shape[0]):
-            train[t][k] = (train[t][k] - minim)/(maxim -minim)
+            train[t][k] = (train[t][k] - minim)/denom
         k +=1
 
     return train
-
-
-
     
-print("Training on Class 5 ")
+print("Training on Class 1 ")
+
 mat =[]
-for line in open('shuttleTrain.txt').readlines():
+for line in open('shuttleTrain1.txt').readlines():
     holder = line.split(' ')
     i = 0
     for i in range (len(holder)):
@@ -64,24 +45,20 @@ Fours = []
 for j in range(len(mat)):
     if mat[j][9] == 1:
         Fours.append(mat[j][:])
-print(np.shape(Fours))
 Fours.sort(key=lambda row: row[0:])
-
 shape = np.shape(Fours)
 
 
 
-
-#Ones = normalize(Ones)
 Fours = np.delete(Fours, [0,9],1)
 Fours = normalize(Fours)
-print(Fours[0][:])
+
 shuttleData = np.array(Fours).astype('float32')
 shape = np.shape(shuttleData)
-print(shape)
+
 
 mat2 =[]
-for line in open('shuttleTest.txt').readlines():
+for line in open('shuttleTest1.txt').readlines():
     holder = line.split(' ')
     i = 0
     for i in range (len(holder)):
@@ -145,6 +122,7 @@ shapeTest5 = np.shape(class5)
 shapeTest6 = np.shape(class6)
 shapeTest7 = np.shape(class7)
 
+
 shuttleTest = np.array(class1[0:shapeTest[0]][:]).astype('float32')
 shuttleTest2 = np.array(class2[0:shapeTest2[0]][:]).astype('float32')
 shuttleTest3 = np.array(class3[0:shapeTest3[0]][:]).astype('float32')
@@ -153,32 +131,10 @@ shuttleTest5 = np.array(class5[0:shapeTest5[0]][:]).astype('float32')
 shuttleTest6 = np.array(class6[0:shapeTest6[0]][:]).astype('float32')
 shuttleTest7 = np.array(class7[0:shapeTest7[0]][:]).astype('float32')
 
-#print(scipy.stats.zscore(shuttleTest6))
 
 
-'''
-shuttleTest = np.array(class1[0:100][:]).astype('float32')
-shuttleTest2 = np.array(class2[0:100][:]).astype('float32')
-shuttleTest3 = np.array(class3[0:100][:]).astype('float32')
-shuttleTest4 = np.array(class4[0:100][:]).astype('float32')
-shuttleTest5 = np.array(class5[0:100][:]).astype('float32')
-shuttleTest6 = np.array(class6[0:3][:]).astype('float32')
-shuttleTest7 = np.array(class7[0:3][:]).astype('float32')
 
-shapeTest4 = np.shape(shuttleTest4)
-shapeTest3 = np.shape(shuttleTest3)
-shapeTest5 = np.shape(shuttleTest5)
-shapeTest = np.shape(shuttleTest)
-shapeTest2 = np.shape(shuttleTest2)
-shapeTest6 = np.shape(shuttleTest6)
-shapeTest7 = np.shape(shuttleTest7)
-'''
-
-
-#print(shapeTraining)
 n_hidden = 5
-n_hidden2 = 2
-n_hidden3 = 5
 n_features = shape[1]
 
 
@@ -190,15 +146,7 @@ x = tf.placeholder(tf.float32 , [None , n_features], name = 'x')
 
 w = tf.Variable(tf.truncated_normal([n_features ,n_hidden], stddev = .001), name = 'weights_h')
 b = tf.Variable(tf.truncated_normal([n_hidden], stddev = .001), name = 'biases_h')
-'''
-'Weights and Biases to Hidden Layer2'
-w2 = tf.Variable(tf.random_normal([n_hidden ,n_hidden2]), name = 'weights_h2')
-b2 = tf.Variable(tf.random_normal([n_hidden2]), name = 'biases_h2')
 
-'Weights and Biases to Hidden Layer 3'
-w3 = tf.Variable(tf.random_normal([n_hidden2 ,n_hidden3]), name = 'weights_h3')
-b3 = tf.Variable(tf.random_normal([n_hidden3]), name = 'biases_h3')
-'''
 'Weights and Biases to Output Layer'
 wo = tf.Variable(tf.truncated_normal([n_hidden, n_features],stddev = .001), name = 'weights_o')
 bo = tf.Variable(tf.truncated_normal([n_features], stddev = .001), name = 'biases_o')
@@ -218,7 +166,7 @@ loss = tf.reduce_mean(tf.square(y_true - y))
 optimizer = tf.train.GradientDescentOptimizer(.05).minimize(loss)
 #train = optimizer.minimize(loss)
 
-'Set up For batch training if needed'
+
 
 'Uncomment to Look at Graph and Nodes'
 #print(tf.get_default_graph().as_graph_def())
@@ -226,11 +174,6 @@ optimizer = tf.train.GradientDescentOptimizer(.05).minimize(loss)
 losses = []
 mini_epochs = 400
 batch_size = 5
-total_epochs = 1500
-
-print("\nNumber of Epochs: ", total_epochs)
-print("Batch Size: ", batch_size)
-print("\n")
 
 
 'Load Graph'
@@ -238,14 +181,12 @@ init = tf.global_variables_initializer()
 sess = tf.Session()
 sess.run(init)
 
-#print(sess.run(w))
+
 
 train_losses = []
 print("Start Training Batches....")
 batchTot = []
-#batchRate = np.float32(.000002)
 for t in range(200):
-    #print("New Batch")
     batch_losses = []
     for y in range(mini_epochs):
         rando = randint(0,shape[0]-5)
@@ -255,10 +196,10 @@ for t in range(200):
         batch_losses.append(sess.run(loss, feed_dict = {x: batch_xs, y_true: batch_ys}))
     if t%10 ==0:
         batchTot.append(np.average(batch_losses))
-plot(batchTot)
-show()
+#plot(batchTot)
+#show()
 
-#print(sess.run(w))
+
 print("Start Online Training....")
 for q in range(6):
     losses = []
@@ -268,10 +209,8 @@ for q in range(6):
         batch_ys = [shuttleData[temp][0:shape[1]]]
         sess.run(optimizer, feed_dict = {x: batch_xs, y_true: batch_ys})
         losses.append(sess.run(loss, feed_dict = {x: batch_xs, y_true: batch_ys}))
-    print(np.average(losses))
+   # print(np.average(losses))
 
-
-print(sess.run(w))
 
 
 test_losses = []
@@ -287,153 +226,174 @@ for u in range(300):
     check2 = tf.matmul(check, wo)+bo
     test_losses.append(sess.run(tf.reduce_sum(tf.square(check2 - test_act))))
     
-
+'''
 mean = np.average(test_losses)
 print("Class 1 Average Loss ", mean)
 print("")
-
+'''
 
 test_losses2 = []
 for l in range(shapeTest2[0]):
     bobweir = np.array([shuttleTest2[l][:]])
     test_act = np.array([shuttleTest2[l][:]])
-    #sess.run([train], feed_dict = {x: bobweir, y_true: test_act})
     check =tf.sigmoid(tf.matmul(bobweir, w)+b)
     check2 = tf.matmul(check, wo)+bo
     test_losses2.append(sess.run(tf.reduce_sum(tf.square(check2 - test_act))))
-
+'''
 mean =(np.average(test_losses2))
 
 print("Class 2 Average Loss ", mean)
 print("")
-
+'''
 test_losses3 = []
 for l in range(shapeTest3[0]):
     bobweir = np.array([shuttleTest3[l][:]])
     test_act = np.array([shuttleTest3[l][:]])
-    #sess.run([train], feed_dict = {x: bobweir, y_true: test_act})
     check =tf.sigmoid(tf.matmul(bobweir, w)+b)
     check2 = tf.matmul(check, wo)+bo
     test_losses3.append(sess.run(tf.reduce_sum(tf.square(check2 - test_act))))
-
+'''
 mean =(np.average(test_losses3))
-
-
 print("Class 3 Average Loss ", mean)
 print("")
-
+'''
 
 test_losses4 = []
 for z in range(300):
     bobweir = np.array([shuttleTest4[z][:]])
     test_act = np.array([shuttleTest4[z][:]])
-    #sess.run([train], feed_dict = {x: bobweir, y_true: test_act})
     check =tf.sigmoid(tf.matmul(bobweir, w)+b)
     check2 = tf.matmul(check, wo)+bo
     test_losses4.append(sess.run(tf.reduce_sum(tf.square(check2 - test_act))))
-
+'''
 mean=(np.average(test_losses4))
 print("Class 4 Average Loss ", mean)
 print("")
-
+'''
 test_losses5 = []
 for v in range(400):
     bobweir = np.array([shuttleTest5[v][:]])
     test_act = np.array([shuttleTest5[v][:]])
-    #sess.run([train], feed_dict = {x: bobweir, y_true: test_act})
     check =tf.sigmoid(tf.matmul(bobweir, w)+b)
     check2 = tf.matmul(check, wo)+bo
     test_losses5.append(sess.run(tf.reduce_sum(tf.square(check2 - test_act))))
-
+'''
 mean = (np.average(test_losses5))
 print("Class 5 Average ", mean)
 print("")
-
-mean = np.average(test_losses4)
-stdDev = np.std(test_losses4)
-threshhold = mean + stdDev
-
-
+'''
 
 test_losses6 = []
 for r in range(shapeTest6[0]):
     bobweir = np.array([shuttleTest6[r][:]])
     test_act = np.array([shuttleTest6[r][:]])
-    #sess.run([train], feed_dict = {x: bobweir, y_true: test_act})
     check =tf.sigmoid(tf.matmul(bobweir, w)+b)
     check2 = tf.matmul(check, wo)+bo
     test_losses6.append(sess.run(tf.reduce_sum(tf.square(check2 - test_act))))
-
+'''
 mean = (np.average(test_losses6))
 print("Class 6 Average ", mean)
 print("")
-
+'''
 test_losses7 = []
 for s in range(shapeTest7[0]):
     bobweir = np.array([shuttleTest7[s][:]])
     test_act = np.array([shuttleTest7[s][:]])
-    #sess.run([train], feed_dict = {x: bobweir, y_true: test_act})
     check =tf.sigmoid(tf.matmul(bobweir, w)+b)
     check2 = tf.matmul(check, wo)+bo
     test_losses7.append(sess.run(tf.reduce_sum(tf.square(check2 - test_act))))
-
+'''
 mean = (np.average(test_losses7))
 print("Class 7 Average ", mean)
 print("")
-
+'''
 
 positive = 0
 falsePositive = 0
 negative = 0
 falseNegative = 0
 
+mean = np.average(test_losses5)
+stdDev = np.std(test_losses5)
+threshhold = mean + 1.25*stdDev
 
-for j in range(len(test_losses)):
-    if test_losses[j] > threshhold:
+conf = []
+
+
+for j in range(len(test_losses5)):
+    if test_losses5[j] > threshhold:
         falsePositive += 1
+        conf.append(1)
     else:
         positive += 1
+        conf.append(0)
 
 
-
-for i in range(len(test_losses5)):
-    if test_losses5[i] > threshhold:
-        negative += 1
+for i in range(len(test_losses)):
+    if test_losses[i] > threshhold:
+        negative +=1
+        conf.append(1)
     else:
         falseNegative += 1
+        conf.append(0)
         
 for i in range(len(test_losses4)):
     if test_losses4[i] > threshhold:
         negative += 1
+        conf.append(1)
     else:
         falseNegative += 1
+        conf.append(0)
 for i in range(len(test_losses3)):
     if test_losses3[i] > threshhold:
         negative += 1
+        conf.append(1)
     else:
         falseNegative += 1
+        conf.append(0)
 
 for i in range(len(test_losses2)):
     if test_losses2[i] > threshhold:
         negative += 1
+        conf.append(1)
     else:
         falseNegative += 1
+        conf.append(0)
 for i in range(len(test_losses6)):
     if test_losses6[i] > threshhold:
         negative += 1
+        conf.append(1)
     else:
         falseNegative += 1
+        conf.append(0)
+        
 for i in range(len(test_losses7)):
     if test_losses7[i] > threshhold:
         negative += 1
+        conf.append(1)
     else:
         falseNegative += 1
+        conf.append(0)
 
+acts = []
+for i in range(len(test_losses5)):
+    acts.append(0)
+longL = len(test_losses)+len(test_losses2)+len(test_losses3)+len(test_losses4)+len(test_losses6)+len(test_losses7)
+for j in range(longL):
+    acts.append(1)
+'''
 print("Positive ", positive)
 print("False Positive ", falsePositive)
 print("Negative ", negative)
 print("False Negative ", falseNegative)
+'''
 tot = negative+positive +falsePositive + falseNegative
 pos = negative + positive
 acc = float(pos/tot)
+y_pred = pd.Series(conf, name = 'Predicted')
+y_act = pd.Series(acts, name = 'Actual')
+df_confusion = pd.crosstab(y_act, y_pred, rownames = ['Actual'], colnames = ['Predicted'], margins = True)
+print(df_confusion)
+
 print("Accuracy % = ", acc*100)
+
