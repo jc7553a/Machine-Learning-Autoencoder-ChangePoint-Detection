@@ -106,7 +106,7 @@ def changePoints(mat):
 
     B = b*np.ones((n,1))
     C = c*np.ones((n,1))
-
+    adder = 0
 
     temp = np.zeros((n,1))
 
@@ -115,14 +115,11 @@ def changePoints(mat):
             xi[i][0] = 1
         else:
             xi[i][0] = 0
-    j = 1
-#while j < r:
     for h in range(n):
         if mat[h] > C[h][0]:
             xi[h][3] = 1
         else:
             xi[h][3] = 0
-    #j +=1
 
     m = 2
     temp = np.zeros((n,1))
@@ -130,7 +127,6 @@ def changePoints(mat):
     temp3 = np.zeros((n,1))
 
     while m < r:
-        
         for i in range(n):
             if mat[i] > B[i][0]+(d*(m-2)):
                 temp[i][0] = 1
@@ -141,49 +137,51 @@ def changePoints(mat):
                 temp2[j][0] = 1
             else:
                 temp2[j][0] = 0
-    #print(temp2)
+
         for t in range(n):
             temp3[t][0] = temp[t][0]*temp2[t][0]
         for q in range(n):
             xi[q][m-1] = temp3[q][0]
         m = m+1
-
-    #print(xi)
-
-    k = 1
+   
+    k = 2
     p = np.zeros((1,r))
     q = np.zeros((1,r))
     S = []
-
-    while k < n-3:
+    for i in range(r):
         mean = 0
+        for j in range(k):
+            mean = mean + xi[j][i]
+        mean = mean /k
+        
+
+    while k <= n-2:
+        
         'Find P'
         for i in range(r):
+            mean = 0
             for h in range(k):
                 mean += xi[h][i]
-            mean = mean/k
+            mean = mean/(k)
             p[0][i] = mean
 
         'Find q'
-        mean = 0
         for j in range(r):
+            mean = 0
             beb = k
             while beb < n:
                 mean += xi[beb][j]
                 beb +=1
             mean = mean/(n-k)
             q[0][j] = mean
-        #if k ==2:
-            #print(p)
         'Find u'
         u = 0
         for i in range(r):
             if q[0][i] == 0:
                 u+=1
         ep = eps/(n-k)
-
+            
         z = np.zeros((r,1))
-    #S = np.zeros(((n-3),1))
         for m in range(r):
             if p[0][m] > 0:
                 if u == 0:
@@ -192,39 +190,37 @@ def changePoints(mat):
                     z[m][0] = p[0][m]*np.log(p[0][m]/ ep*u)
                 else:
                     z[m][0] = p[0][m] *np.log(p[0][m]/q[0][m]/(1-ep))
-            adder = 0
+        adder = 0
         for u in range(r):
             adder += z[u][0]
-        S.append(adder) 
+        S.append((k)*adder)
         k +=1
 
-
-    margin = gamma*n
+    margin = (gamma*n)
     t = int(margin)
     temp = -1
     while t < int(n-margin):
         if S[t] > temp:
             temp = S[t]
         t +=1
-    print(temp)
     
-    Smax = max(S[(int(margin)):(int(n-margin))])
+    Smax = max(S[(int(margin+1)):(int(n-margin+1))])
     k = (int (margin))
-    while k < (int(n-margin)):
+    nuhat = 0
+    while k < (int(n-margin)+1):
         if S[k] > Smax -0.0000001:
             nuhat = k
         k +=1
-    print("NUHAT")
-    print(nuhat)
+    print("Change Point: ", nuhat)
     W = []
     for i in range(n):
         W.append(0)
 
     for i in range(800):
         W[i+100] = max([0, W[i+99]+S[i+100]-S[i+99]])
-
     #plot(W)
     #show()
+    return nuhat
 
 
 print("Training on Class 1 ")
