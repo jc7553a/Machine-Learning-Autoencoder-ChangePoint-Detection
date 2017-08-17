@@ -4,8 +4,40 @@ import pylab
 import random
 from matplotlib.pylab import *
 
-print("Fold 10")
 
+''' James Clark
+    American University Data Science Lab
+    6/12/2017
+    A simple program for an Autoencoder
+    To Classify Malignant Vs Benign Cancer
+    Currently It is set up for Cross Validation
+    with 90% train and 10% testing
+'''
+
+
+def normalize(train):
+    'Normalize Data by Y-Min/Max-min'''
+    train = np.array(train)
+    shape = np.shape(train)
+    k = 0
+    while k <shape[1]:
+        maxim = 0
+        minim = 0
+        for i in range(shape[0]):
+            if train[i][k] > maxim:
+                maxim = train[i][k]
+            if train[i][k] < minim:
+                minim = train[i][k]
+        denom = maxim - minim
+        if denom == 0:
+            denom = .0000000001
+        for t in range(shape[0]):
+            train[t][k] = (train[t][k] - minim)/denom
+        k +=1
+    return train
+
+print("Fold 10")
+''' Input Benign Cancer to train on'''
 mat =[]
 for line in open('breastCancerBenign1.txt').readlines():
     holder = line.split(',')
@@ -19,6 +51,8 @@ for line in open('breastCancerBenign1.txt').readlines():
 
 mat = np.delete(mat, [0,10], 1)
 benignData = np.array(mat).astype('float32')
+benignData = normalize(benignData)
+'''Input Malignant Cancer Data'''
 
 mat2 = []
 for line in open('breastCancerMalignant1.txt').readlines():
@@ -27,17 +61,20 @@ for line in open('breastCancerMalignant1.txt').readlines():
     for i in range (len(holder)):
             holder[i] = float(holder[i])
     mat2.append(holder)
-
+    
+'''Delete Patient Number and Classification'''
 mat2 = np.delete(mat2,0,1)
 mat2 = np.delete(mat2, [0,10], 1)
 malData = np.array(mat2).astype('float32')
-
+malData = normalize(malData)
 bShape = np.shape(benignData)
 mShape = np.shape(malData)
 
+'''Testing Examples will be 10% of Data'''
 numTestsBenign =  int(bShape[0]*.1)
 numTestsMal = int(mShape[0]*.1)
 
+'''Everything else ie. 90% of data will be for training'''
 temp = np.zeros((400,9))
 for i in range(388):
     for j in range(bShape[1]):
@@ -48,9 +85,10 @@ for i in range(2):
 input = np.array(temp)
 #input = benignData[0:(bShape[0] -numTestsBenign)][:]
 testingBenign = benignData[(numTestsBenign*10):(numTestsBenign*11)][:]
-
+testingBenign = normalize(testingBenign)
 shapeTesting = np.shape(testingBenign)
 testingMal = malData[(numTestsMal*10):(numTestsMal*11)][:]
+testingMal= normalize(testingMal)
 shapeMal = np.shape(testingMal)
 shape = np.shape(input)
 input = np.array(input)
@@ -59,12 +97,12 @@ print("Number of Testing Benign: ", numTestsBenign)
 print("Number of Testing Malignant: ", shapeMal[0])
 print("\n")
 
-#print(shapeTraining)
+'''Number of Hidden Units and Number of Features of Training Data'''
 n_hidden = 10
 n_features = shape[1]
 
 
-
+'''Setting up Autoencoder'''
 x = tf.placeholder(tf.float32 , [None , n_features], name = 'x')
 
 'Weights and Biases to Hidden Layer'
@@ -97,10 +135,8 @@ train = optimizer.minimize(loss)
 #print(tf.get_default_graph().as_graph_def())
 
 losses = []
-epochs = 10000
-batch_size = 20
+epochs = 300
 print("\nNumber of Epochs: ", epochs)
-print("Batch Size: ", batch_size)
 print("\n")
 
 'Load Graph'
@@ -110,19 +146,12 @@ sess.run(init)
 
 
 for i in range(epochs):
-    for q in range(batch_size):
+    for q in range(shape[0]):
         j = randint(0,shape[0])
         batch_xs = [input[j][0:shape[1]]]
         batch_ys = [input[j][0:shape[1]]]
         sess.run([train, loss], feed_dict = {x: batch_xs, y_true: batch_ys})
         #losses.append(sess.run(loss, feed_dict = {x: batch_xs, y_true: batch_ys}))
-
-#print(sess.run(w))
-
-#plot(losses)
-#show()
-#print(losses)
-
 
 
 
@@ -182,7 +211,7 @@ print("After Removing Outliers")
 print("Std Benign Loss ", stdDev)
 print("\n")
 mean = np.average(test_losses)
-threshhold = 2*stdDev + mean
+threshhold = stdDev + mean
 print("Threshold Determination: ", threshhold)
 print("\n")
 
